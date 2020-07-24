@@ -198,19 +198,60 @@ SRC -> pages -> main -> index:
 			lá em baixo onde tem o botão acessar: troca o "a" da tag por Link e troca o href por to e substitui as aspas por {`/products/${produc._id}`}.(agora ao clicar em Acessar, já é pra ir pra página de produtos.
 
 *Navegando pelo detalhe
-	1)pages -> product -> index:
-		import api from '../../services/api'
-		em cima de render(): 
-			state ={
-        			Product:{},
-    			};
-    			async componentDidMount(){
-        			const {id} = this.props.match.params;
-        			const response = await api.get(`/products/${id}`);
-        			this.setState({Product: response.data})
-    			}
+	1)pages -> product -> index.js:
+			import React, { Component } from "react";
+			import api from '../../services/api';
+			import './styles.css'
 
-		
+			export default class Product extends Component {
+    				state ={
+        				product:{},
+    				};
+
+    				async componentDidMount(){
+        				const { id } = this.props.match.params;
+
+        				const response = await api.get(`/products/${id}`);
+        				console.log(response)
+        				this.setState({ product: response.data });
+    				}
+
+    				render(){
+        				const { product } = this.state;
+        				console.log(product)
+        				return (
+            					<div className="product-info"> 
+                					<h1>{product.title}</h1>
+                					<p>{product.description}</p>
+                					<p>URL: <a href={product.url}>{product.url}</a>
+                					</p>
+            					</div>
+        				);
+    				}
+			}
+	1)pages -> product -> style.css:
+		.product-info{
+    			max-width: 700px;
+    			margin: 20px auto 0;
+    			padding: 20px;
+    			background: #fff;
+    			border-radius: 5px;
+    			border: 1px solid #ddd;
+		}
+
+		.product-info h1{
+    			font-size: 32px;
+		}
+
+		.product-info p{
+    			color: #666;
+    			line-height: 24px;
+    			margin-top: 5px;
+		}
+
+		.product-info p a{
+    			color: #069;
+		}
 
 	
 	
