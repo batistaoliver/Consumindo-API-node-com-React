@@ -1,0 +1,216 @@
+*Buscando produtos na API:
+1)instala biblioteca axios:(yarn add axios)
+2) Src -> cria pasta services -> cria arquivo api.js
+	import axios from 'axios';
+	const api = axios.create({ baseURL: 'https://rocketseat-node.heroku.com/api'});
+	export default api;
+3) Em App.js:
+	import api from './services/api'
+4)src cria pasta chamada "pages" -> pasta chamada main -> index.js
+	import React, { Component } from "react";
+	import api from "../../services/api";
+
+	export default class Main extends Component {
+		render(){
+			return <h1>Hello Rocketseat</h1>;
+		}
+	}
+5) App.js
+	import Main from './pages/main'
+	a baixo de <Header/> coloca: <Main/>
+6)pages/main/index : (dentro da função main)
+	componentDidMount(){
+			this.loadProducts();
+		}
+
+		loadProducts = async () =>{
+			const response = await api.get("/products");
+
+			console.log(response)
+		}
+
+*Armazenando no estado:
+SRC -> pages -> main -> index:
+	1)em baixo de "export default class Main extends Component {":
+	state = {
+		products: []
+	};
+	2)em baixo de "const responde":
+		this.setState({ products: response.data.docs});
+	3)dentro de "render()" coloca: return <h1>Contagem de produtos: {this.state.products.length}</h1>
+	4)substitui o conteudo do return por : (para listar os títulos de todos os produtos)
+		(<div className="product-list">
+			{this.state.products.map(product => (
+				<h2>{product.title}</h2>
+		))}
+		</div>)
+
+*listando produtos
+
+	1)substitui o valor do "h2" da div por:
+	<article key={product._id}>
+		<strong>{product.title}</strong>
+		<p>{product.descripition}</p>
+
+		<a href="">Acessar</a>
+	</article>
+	2)em baixo de render, coloca: const {products} = this.state e retira o "this.states" de dentro da div.
+	3)SRC -> pages -> main ->cria styles.css;
+	4) no index acima, importa: import './styles.css'
+		.product-list {
+    			max-width: 700px;
+    			margin: 20px auto 0;
+    			padding: 0 20px;
+			}
+
+		.product-list article{
+    			background: #fff;
+    			border: 1px solid #ddd;
+    			border-radius: 5px;
+    			padding: 20px;
+    			margin-bottom: 20px;
+		}
+
+		.product-list article p{
+    			font-size: 16px;
+    			color: #999;
+    			margin-top: 5px;
+    			line-height: 24px;
+		}
+
+		/* botão */
+		.product-list article a{
+    			height: 24px;
+    			border-radius: 5px;
+    			border: 2px solid #da552f;
+    			background: none;
+    			margin-top: 10px;
+    			color:#da552f;
+    			font-weight: bold;
+    			font-size: 16px;
+    			text-decoration:none;
+    			display: flex;
+    			justify-content: center;
+    			align-items: center;
+    			transition: all 0.2s;
+		}
+
+		/* quando o usuário passar o mouse por cima do botão */
+		.product-list article a:hover{
+    			background: #da552f;
+    			color: #fff;
+		}
+
+*Página anterior/próxima
+	1)SRC -> pages -> main ->index.js;
+		na ultima linha da div, inseri: 
+			<div className="actions">
+				<button>Anterior</button>
+				<button>Próximo</button>
+			</div>
+	2)SRC -> pages -> main ->cria styles.css;
+		.product-list .actions {
+    			display: flex;
+    			justify-content: space-between;
+    			margin-bottom: 20px;
+		}
+
+		.product-list .actions button{
+    			padding: 10px;
+    			border-radius: 5px;
+    			border: 0;
+    			background: #da552f;
+    			color: #fff;
+    			font-size: 16px;
+    			font-weight: bold;
+    			cursor: pointer;
+		}
+		/* botão desabilitado */
+		.product-list .actions button[disabled]{
+    			opacity: 0.5;
+    			cursor: default;
+		}
+		.product-list .actions button:hover{
+    			opacity:0.7;
+		}
+		/* forçando a não funcionar o hover quando o botão estiver desabilitado */
+		.product-list .actions button[disabled]:hover{
+    			opacity: 0.5;
+		}
+
+	3) SRC -> pages -> main ->index.js: Nos botões de próximo e anterior, coloca:
+		onClick={this.prevPage}
+		onClick={this.nextPage}
+	
+	4) dentro de states, coloca:
+		,productInfo: {}, page:1, // vai ter os produtos que vem da api
+	5)dentro de loadProducts, abaixo de const response, coloca:
+		const {docs, ... productInfo} = response.data; // o restante das informações que vem da api;
+	6) em this.setState:
+		substitui response.data.docs por "dos, ProductInfo, page"
+	7) Em cima de render(), cola :
+
+		nextPage = () =>{
+			const {page, productInfo}=this.state;
+
+			if (page == productInfo.pages) return;
+			const pageNumber = page +1;
+			this.loadProducts(pageNumber);
+		}
+	dentro do paramétro de loadProducts coloca: "page =1" e no parámetro de const response coloca: `/products?page=${page}` //com aspas invertidas para esquerda `
+	8)desabilitar os botões de next e anterior
+		no cont em baixo de render(), acrescenta "page" e "productInfo" e dentro das tags dos botões coloca: disabled={page ==1}(para o prev) e disabled={page ==productInfo.pages}(para o next)
+
+
+*confugurando a navegação:
+		1)intalar a biblioteca de navegação: yarn add react-router-dom
+		2) em src cria o arquivo "routes.js:
+			import React from 'react';
+			import {BrowserRouter, Switch, Route} from 'react-router-dom';
+			import Main from './pages/main'
+
+			const Routes = () => (
+    				<BrowserRouter>//Só pra dizer que vai estar acessando atravéz de um browser
+        				<Switch>//só pra fizer que vai abrir uma rota de cada vez
+            					<Route path="/" component={Main} />
+        				</Switch>
+    				</BrowserRouter>
+			);
+
+			export default Routes;
+		3)Em App.js:
+			import Routes from './routes';
+			dentro de "const App" substitui o <Main/> por <Routes/>
+		4)src -> pages -> cria pasta "product" -> arquivo index.js
+			import React, {Component} from "react";
+
+			export default class Product extends Component{
+    				render(){
+        				return <h1>Product</h1>;
+    				}
+			}
+		5)em routes.js:
+			import Product from './pages/product';
+			<Route path="/products/:id" component={Product} /> //abaixo da rota Main
+			
+		6) pages -> main -> index:
+			import {link} from 'react-router-dom'
+			lá em baixo onde tem o botão acessar: troca o "a" da tag por Link e troca o href por to e substitui as aspas por {`/products/${produc._id}`}.(agora ao clicar em Acessar, já é pra ir pra página de produtos.
+
+*Navegando pelo detalhe
+	1)pages -> product -> index:
+		import api from '../../services/api'
+		em cima de render(): 
+			state ={
+        			Product:{},
+    			};
+    			async componentDidMount(){
+        			const {id} = this.props.match.params;
+        			const response = await api.get(`/products/${id}`);
+        			this.setState({Product: response.data})
+    			}
+
+		
+
+	
+	
